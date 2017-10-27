@@ -1,4 +1,7 @@
 import os
+import logging
+import fnmatch
+import pprint
 from airflow.operators import BaseOperator
 from airflow.plugins_manager import AirflowPlugin
 from airflow.utils.decorators import apply_defaults
@@ -6,12 +9,15 @@ from airflow.models import XCOM_RETURN_KEY
 
 from jinja2 import Environment, FileSystemLoader, Template
 
+log = logging.getLogger(__name__)
+
+TEMPLATE_DIR_NAME='templates'
+
 class TemplatesResolver:
 
     def __init__(self):
         dirname = os.path.dirname(os.path.abspath(__file__))
-        pardirname = os.path.abspath(os.path.join(dirname, os.pardir))
-        template_dir = os.path.join(pardirname, 'templates')
+        template_dir = os.path.join(dirname, TEMPLATE_DIR_NAME)
         log = logging.getLogger(__name__)
         log.info(pprint.pformat(template_dir))
         self.j2_env = Environment(loader=FileSystemLoader(template_dir))
