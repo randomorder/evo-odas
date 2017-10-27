@@ -404,10 +404,11 @@ class S1MetadataOperator(BaseOperator):
             }
         )
 
+
+        out = po.execute(context)
+        zip_paths = list()
         if out:
-            zip_paths = list(out)
-        else:
-            zip_paths = list()
+            zip_paths.append(out)
         return zip_paths
 
 
