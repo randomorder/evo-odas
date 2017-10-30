@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 import os
+import re
 import logging
 import xml.etree.ElementTree as ET
 import geojson
@@ -87,6 +88,17 @@ class S1GDALReader:
         datastore = gdal.Open(manifest_zip_path)
         metadata_dict = datastore.GetMetadata()
         metadata_dict['NAME'] = self.granule_identifier
+        startTime = metadata_dict['ACQUISITION_START_TIME']
+        endTime   = metadata_dict['ACQUISITION_STOP_TIME']
+        # round to milliseconds
+        m = re.search("(.*)(\d{3})(\d{3})$", startTime)
+        if m:
+            startTime = m.groups()[0] + m.groups()[1]
+        m = re.search("(.*)(\d{3})(\d{3})$", endTime)
+        if m:
+            endTime = m.groups()[0] + m.groups()[1]
+        metadata_dict['ACQUISITION_START_TIME'] = startTime + 'Z'
+        metadata_dict['ACQUISITION_STOP_TIME'] = endTime + 'Z'
         return metadata_dict
 
     def get_footprint(self):
