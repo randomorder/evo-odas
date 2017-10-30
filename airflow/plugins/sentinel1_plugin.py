@@ -30,141 +30,115 @@ from utils import TemplatesResolver
 
 log = logging.getLogger(__name__)
 
-
-def collect_sentinel1_metadata(metadata):
-    return ({  # USED IN METADATA TEMPLATE and as SEARCH PARAMETERS
-                "type": "Feature",
-                "geometry": {
-                    "type": metadata['footprint']['type'],
-                    "coordinates": metadata['footprint']['coordinates']
-                },
-                "properties": {
-                    "eop:identifier": metadata['NAME'],
-                    'timeStart': metadata['ACQUISITION_START_TIME'],
-                    'timeEnd': metadata['ACQUISITION_STOP_TIME'],
-                    "originalPackageLocation": None,
-                    "thumbnailURL": None,
-                    "quicklookURL": None,
-                    "eop:parentIdentifier": "SENTINEL1",
-                    "eop:productionStatus": None,
-                    "eop:acquisitionType": None,
-                    'eop:orbitNumber': metadata['ORBIT_NUMBER'],
-                    'eop:orbitDirection': metadata['ORBIT_DIRECTION'],
-                    "eop:track": None,
-                    "eop:frame": None,
-                    "eop:swathIdentifier": metadata['SWATH'],
-                    "opt:cloudCover": None,
-                    "opt:snowCover": None,
-                    "eop:productQualityStatus": None,
-                    "eop:productQualityDegradationStatus": None,
-                    "eop:processorName": None,
-                    "eop:processingCenter": metadata['FACILITY_IDENTIFIER'],  # ?
-                    "eop:creationDate": None,
-                    "eop:modificationDate": None,
-                    "eop:processingDate": None,
-                    "eop:sensorMode": metadata['BEAM_MODE'],
-                    "eop:archivingCenter": None,
-                    "eop:processingMode": None,
-                    "eop:availabilityTime": None,
-                    "eop:acquisitionStation": None,
-                    "eop:acquisitionSubtype": None,
-                    "eop:startTimeFromAscendingNode": None,
-                    "eop:completionTimeFromAscendingNode": None,
-                    "eop:illuminationAzimuthAngle": None,
-                    "eop:illuminationZenithAngle": None,
-                    "eop:illuminationElevationAngle": None,
-                    "sar:polarisationMode": None,
-                    "sar:polarisationChannels": None,
-                    "sar:antennaLookDirection": None,
-                    "sar:minimumIncidenceAngle": None,
-                    "sar:maximumIncidenceAngle": None,
-                    "sar:dopplerFrequency": None,
-                    "sar:incidenceAngleVariation": None,
-                    "eop:resolution": None,
-                },
+def create_search_dict(metadata, originalPackageLocation):
+    return \
+        {  # USED IN METADATA TEMPLATE and as SEARCH PARAMETERS
+            "type": "Feature",
+            "geometry": {
+                "type": metadata['footprint']['type'],
+                "coordinates": metadata['footprint']['coordinates']
             },
-            {
-                # USED IN METADATA TEMPLATE ONLY
-                'eoProcessingLevel': "L1",
-                'eoSensorType': "RADAR",
-                'eoProductType': metadata['PRODUCT_TYPE'],
-                'eoInstrument': metadata['SENSOR_IDENTIFIER'],
-                'eoPlatform': metadata['SATELLITE_IDENTIFIER'],
-                'eoPlatformSerialIdentifier': metadata['MISSION_ID'],
-            },
-            {
-                # TO BE USED IN THE PRODUCT ABSTRACT TEMPLATE
+            "properties": {
+                "eop:identifier": metadata['NAME'],
                 'timeStart': metadata['ACQUISITION_START_TIME'],
                 'timeEnd': metadata['ACQUISITION_STOP_TIME'],
-            })
+                "originalPackageLocation": originalPackageLocation,
+                "thumbnailURL": None,
+                "quicklookURL": None,
+                "eop:parentIdentifier": "SENTINEL1",
+                "eop:productionStatus": None,
+                "eop:acquisitionType": None,
+                'eop:orbitNumber': metadata['ORBIT_NUMBER'],
+                'eop:orbitDirection': metadata['ORBIT_DIRECTION'],
+                "eop:track": None,
+                "eop:frame": None,
+                "eop:swathIdentifier": metadata['SWATH'],
+                "opt:cloudCover": None,
+                "opt:snowCover": None,
+                "eop:productQualityStatus": None,
+                "eop:productQualityDegradationStatus": None,
+                "eop:processorName": None,
+                "eop:processingCenter": metadata['FACILITY_IDENTIFIER'],  # ?
+                "eop:creationDate": None,
+                "eop:modificationDate": None,
+                "eop:processingDate": None,
+                "eop:sensorMode": metadata['BEAM_MODE'],
+                "eop:archivingCenter": None,
+                "eop:processingMode": None,
+                "eop:availabilityTime": None,
+                "eop:acquisitionStation": None,
+                "eop:acquisitionSubtype": None,
+                "eop:startTimeFromAscendingNode": None,
+                "eop:completionTimeFromAscendingNode": None,
+                "eop:illuminationAzimuthAngle": None,
+                "eop:illuminationZenithAngle": None,
+                "eop:illuminationElevationAngle": None,
+                "sar:polarisationMode": None,
+                "sar:polarisationChannels": None,
+                "sar:antennaLookDirection": None,
+                "sar:minimumIncidenceAngle": None,
+                "sar:maximumIncidenceAngle": None,
+                "sar:dopplerFrequency": None,
+                "sar:incidenceAngleVariation": None,
+                "eop:resolution": None,
+            }
+      }
 
+def create_metadata_dict(metadata):
+    return \
+        {
+            # USED IN METADATA TEMPLATE ONLY
+            'eoProcessingLevel': "L1",
+            'eoSensorType': "RADAR",
+            'eoProductType': metadata['PRODUCT_TYPE'],
+            'eoInstrument': metadata['SENSOR_IDENTIFIER'],
+            'eoPlatform': metadata['SATELLITE_IDENTIFIER'],
+            'eoPlatformSerialIdentifier': metadata['MISSION_ID'],
+        }
 
-def create_procuct_zip(sentinel1_product_zip_path,
-                       granules_dict,
-                       safe_package_filename,
-                       original_package_download_base_url,
-                       owslinks_dict,
-                       processing_dir
-                       ):
-    s1reader = S1GDALReader(sentinel1_product_zip_path)
-    files = []
+def create_description_dict(metadata, originalPackageLocation):
+        return \
+        {
+            # TO BE USED IN THE PRODUCT ABSTRACT TEMPLATE
+            'timeStart': metadata['ACQUISITION_START_TIME'],
+            'timeEnd': metadata['ACQUISITION_STOP_TIME'],
+            'originalPackageLocation': originalPackageLocation
+        }
 
-    s1metadata = s1reader.get_metadata()
-    log.info(pprint.pformat(s1metadata, indent=4))
-
-    s1metadata['footprint'] = s1reader.get_footprint()
-    log.info(pprint.pformat(s1metadata['footprint'], indent=4))
-
-    (search_params, other_metadata, product_abstract_metadata) = collect_sentinel1_metadata(s1metadata)
-
-    # Add OriginalPackage Location
-    search_params['properties']['originalPackageLocation'] = original_package_download_base_url + safe_package_filename
-
-    log.info(pprint.pformat(search_params))
-    log.info(pprint.pformat(other_metadata))
-    log.info(pprint.pformat(product_abstract_metadata))
-
-    if not os.path.exists(processing_dir):
-        os.makedirs(processing_dir)
-
-    # create description.html and dump it to file
-    log.info("Creating description.html")
+def create_product_description(description_dict):
     tr = TemplatesResolver()
-    try:
-        htmlAbstract = tr.generate_product_abstract(product_abstract_metadata)
-    except:
-        log.error("could not render template for Sentinel1 HTML abstract")
-        return None
-    log.debug(pprint.pformat(htmlAbstract))
-    search_params['htmlDescription'] = htmlAbstract
+    html_description = tr.generate_product_abstract(description_dict)
+    return html_description
+
+def create_product_metadata(metadata_dict):
+    tr = TemplatesResolver()
+    metadata_xml = tr.generate_sentinel1_product_metadata(metadata_dict)
+    return metadata_xml
+
+def create_procuct_zip(
+                       processing_dir,
+                       search_params_dict,
+                       metadata_xml,
+                       description_html,
+                       thumbnail_path,
+                       granules_dict,
+                       owslinks_dict,
+                    ):
+
+    files = []
 
     path = os.path.join(processing_dir, "description.html")
     with open(path, "w") as f:
-        f.write(htmlAbstract)
+        f.write(description_html)
     files.append(path)
 
-    # create metadata.xml and dump it to file
-    log.info("Creating metadata.xml")
-    # xml_doc = tr.generate_sentinel1_product_metadata(du.join(search_params, other_metadata))
-    try:
-        metadata_xml = tr.generate_sentinel1_product_metadata(product_abstract_metadata)
-    except:
-        log.error("could not render template for Sentinel1 metadata.xml")
-    log.debug(pprint.pformat(metadata_xml))
 
     path = os.path.join(processing_dir, "metadata.xml")
     with open(path, "w") as f:
         f.write(metadata_xml)
     files.append(path)
 
-    # create thumbnail
-    # TODO: create proper thumbnail from quicklook. Also remove temp file
-    log.info("Creating thumbnail")
-    path = os.path.join(processing_dir, "thumbnail.png")
-    quicklook_path = s1reader.get_quicklook()
-    log.info(pprint.pformat(quicklook_path))
-    copyfile(quicklook_path, path)
-    files.append(path)
+    files.append(thumbnail_path)
 
     # create granules.json
     log.info("Creating granules.json")
@@ -178,13 +152,13 @@ def create_procuct_zip(sentinel1_product_zip_path,
     # Use the coordinates from the granules in the product.json as the s1reader seems to
     # swap the footprint coordinates, see https://github.com/geosolutions-it/evo-odas/issues/192
     granule_coords = granules_dict.get('features')[0].get('geometry').get('coordinates')
-    search_params['geometry']['coordinates'] = granule_coords
+    search_params_dict['geometry']['coordinates'] = granule_coords
 
     # dump product.json to file
     log.info("Creating product.json")
     path = os.path.join(processing_dir, 'product.json')
     with open(path, 'w') as f:
-        json.dump(search_params, f, indent=4)
+        json.dump(search_params_dict, f, indent=4)
     files.append(path)
 
     # create owslinks.json and dump it to file
@@ -367,13 +341,26 @@ class S1MetadataOperator(BaseOperator):
         safe_package_path = downloaded.keys()[0]
         safe_package_filename = os.path.basename(safe_package_path)
         product_id = downloaded[safe_package_path].get('title')
+        originalPackageLocation = self.original_package_download_base_url + safe_package_filename
         processing_dir = os.path.join(self.processing_dir, product_id)
+        if not os.path.exists(processing_dir):
+            os.makedirs(processing_dir)
 
         log.info('safe_package_path: {}'.format(safe_package_path))
         log.info('local_granules_paths: {}'.format(local_granules_paths))
 
+        s1reader = S1GDALReader(safe_package_path)
+        product_metadata = s1reader.get_metadata()
+        product_metadata['footprint'] = s1reader.get_footprint()
+        log.info(pprint.pformat(product_metadata, indent=4))
+
+        timeStart = product_metadata['ACQUISITION_START_TIME']
+        timeEnd = product_metadata['ACQUISITION_STOP_TIME']
+
         owslinks_dict = create_owslinks_dict(
             product_identifier=product_id,
+            timestart= timeStart,
+            timeend = timeEnd,
             granule_bbox=bbox,
             gs_workspace=self.gs_workspace,
             gs_wms_layer=self.gs_wms_layer,
@@ -388,19 +375,46 @@ class S1MetadataOperator(BaseOperator):
             gs_wcs_scale_i=self.gs_wcs_scale_i,
             gs_wcs_scale_j=self.gs_wcs_scale_j,
             gs_wcs_format=self.gs_wcs_format,
-            gs_wcs_version=self.gs_wcs_version,
+            gs_wcs_version=self.gs_wcs_version
         )
+
+        # create thumbnail
+        # TODO: create proper thumbnail from quicklook. Also remove temp file
+        log.info("Creating thumbnail")
+        thumbnail_path = os.path.join(processing_dir, "thumbnail.png")
+        quicklook_path = s1reader.get_quicklook()
+        log.info(pprint.pformat(quicklook_path))
+        copyfile(quicklook_path, thumbnail_path)
+
+        search_params_dict = create_search_dict(product_metadata, originalPackageLocation)
+        log.info(pprint.pformat(search_params_dict))
+
+        metadata_dict = create_metadata_dict(product_metadata)
+        log.info(pprint.pformat(metadata_dict))
+
+        description_dict = create_description_dict(product_metadata, originalPackageLocation)
+        log.info(pprint.pformat(description_dict))
+
+        # create description.html and dump it to file
+        log.info("Creating description.html")
+        html_description = create_product_description(description_dict)
+        search_params_dict['htmlDescription'] = html_description
+
+        # create metadata XML
+        log.info("Creating metadata.xml")
+        metadata_xml = create_product_metadata(metadata_dict)
 
         po = PythonOperator(
             task_id="s1_metadata_dictionary_creation",
             python_callable=create_procuct_zip,
             op_kwargs={
-                'sentinel1_product_zip_path': safe_package_path,
-                'granules_dict': granules_dict,
                 'processing_dir': processing_dir,
-                'safe_package_filename': safe_package_filename,
-                'original_package_download_base_url' : self.original_package_download_base_url,
+                'search_params_dict' : search_params_dict,
+                'description_html': html_description,
+                'metadata_xml': metadata_xml,
+                'granules_dict': granules_dict,
                 'owslinks_dict' : owslinks_dict,
+                'thumbnail_path' : thumbnail_path
             }
         )
 
